@@ -1,5 +1,6 @@
 import re
 import numpy as np
+import pandas as pd
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
@@ -49,25 +50,28 @@ class SimplexDuasFases:
 
         if pivo != 1: 
             for i in range(len(linha_pivo)):
-                linha_pivo[i] = linha_pivo[i]/pivo
+                linha_pivo[i] = round(linha_pivo[i] / pivo, 2)
 
         for linha in base:
             linha_pivo_base = linha[coordenadas_pivo[1]]
 
             if linha_pivo_base < 0 and linha != linha_pivo:
                 for i in range(len(linha)):
-                    linha[i] = abs(linha_pivo_base)*linha_pivo[i] + linha[i]
+                    linha[i] = round(abs(linha_pivo_base) * linha_pivo[i] + linha[i], 2)
 
             elif linha_pivo_base > 0 and linha != linha_pivo:
                 for i in range(len(linha)):
-                    linha[i] = -linha_pivo_base*linha_pivo[i] + linha[i]
+                    linha[i] = round(-linha_pivo_base * linha_pivo[i] + linha[i], 2)
 
         for i in range(len(ultima_linha)-1):
             if ultima_linha[i] < 0:
+                self.Apresentar_Tabela(base)
                 self.Eliminacao_Z(base)
-
-        self.Apresentar_Final_Etapa("ELIMINACAO 'Z' CONCLUIDA!")
+                return
+            
         self.Apresentar_Tabela(base)
+        self.Apresentar_Final_Etapa("ELIMINACAO 'Z' CONCLUIDA!")
+
 
     def PivoW(self, base):
         linha_w = base[len(base)-1]
@@ -91,7 +95,7 @@ class SimplexDuasFases:
         coluna_b.pop(-2)    # REMOVENDO ITEM Z COLUNA B
 
         for i in range(len(coluna_pivo)):
-            pivo = 500
+            pivo = 10**6
             if coluna_b[i] > 0 and coluna_pivo[i] > 0:
                 if coluna_b[i]/coluna_pivo[i] < pivo:
                     pivo = coluna_pivo[i]
@@ -106,7 +110,10 @@ class SimplexDuasFases:
 
         if pivo != 1: 
             for i in range(len(linha_pivo)):
-                linha_pivo[i] = linha_pivo[i]/pivo
+                try:
+                    linha_pivo[i] = linha_pivo[i]/pivo
+                except ZeroDivisionError:
+                    linha_pivo[i] = 10**3
 
         for linha in base:
             linha_pivo_base = linha[self.PivoW(base)[1]]
@@ -124,12 +131,13 @@ class SimplexDuasFases:
             for linha in base:
                 linha.pop(-2)         # DELETANDO COLUNA COM VALOR DA VARIAVEL ARTIFICIAL
 
-            self.Apresentar_Final_Etapa("ELIMINACAO 'W' CONCLUIDA!")
             self.Apresentar_Tabela(base)
+            self.Apresentar_Final_Etapa("ELIMINACAO 'W' CONCLUIDA!")
 
         else:
+            self.Apresentar_Tabela(base)
             self.Eliminacao_W(base)
-
+            
         return base
 
     def Apresentar_Tabela(self, base):
